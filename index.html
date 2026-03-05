@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="images/logo_iit_madras_without_background.png" type="image/x-icon">
+    <title>GATE Exam Interface</title>
+    <link rel="stylesheet" href="css/exam_style.css">
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+            options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'], enableMenu: false },
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Upload Section -->
+    <div id="uploadSection" class="upload-section">
+        <!-- Unified Toolbar -->
+        <div class="home-toolbar">
+            <nav class="home-nav">
+                <a href="analytics.html" class="nav-analytics">📊 Analytics</a>
+                <a href="bookmarks.html" class="nav-bookmarks">📌 Bookmarks</a>
+                <a href="silly_mistakes.html" class="nav-mistakes">🤦 Mistakes</a>
+                <a href="exam_library.html" class="nav-library">📚 Library</a>
+            </nav>
+            <div class="home-utils">
+                <button id="exportDataBtn" onclick="handleExportData()" class="util-btn data-btn-backup">📥
+                    Backup</button>
+                <button id="importDataBtn" onclick="document.getElementById('importFileInput').click()"
+                    class="util-btn data-btn-restore">📤 Restore</button>
+                <input type="file" id="importFileInput" style="display:none;" accept=".json"
+                    onchange="handleImportData(event)">
+                <button id="tgSettingsBtn" onclick="autoBackupToTelegram(true)" class="util-btn data-btn-telegram">⚙️
+                    Telegram</button>
+                <span class="storage-badge" id="storageUsageDisplay">💾 <span id="storageUsageValue">...</span></span>
+            </div>
+        </div>
+
+        <button class="dark-mode-toggle standalone" id="uploadDarkToggle" title="Toggle Dark Mode">
+            <span class="icon-moon">🌙</span>
+            <span class="icon-sun">☀️</span>
+        </button>
+
+        <div class="home-layout-container">
+            <!-- Left Sidebar -->
+            <div class="home-sidebar">
+                <div class="streak-tracker stat-card">
+                    <div class="stat-card-label">🔥 Daily Streak</div>
+                    <div class="stat-card-value" style="color: #1abc9c;" id="streakCountDisplay">0 Days</div>
+                    <div id="streakCalendarContainer"></div>
+                </div>
+
+                <!-- Daily Notes Panel -->
+                <div class="todo-tracker stat-card"
+                    style="background: rgba(155, 89, 182, 0.1); border: 1px solid rgba(155, 89, 182, 0.3); height: 255px; display: flex; flex-direction: column;">
+                    <div id="todoHeaderLabel" class="stat-card-label"
+                        style="margin-bottom: 12px; letter-spacing: 0.8px; flex-shrink: 0;">
+                        📝 DAILY NOTES
+                    </div>
+                    <!-- Tab Switcher -->
+                    <div class="dn-tab-bar" style="flex-shrink: 0;">
+                        <button class="dn-tab active" id="dnTabTodo" data-tab="todo">☑️ To-Do</button>
+                        <button class="dn-tab" id="dnTabNotes" data-tab="notes">📒 Notes</button>
+                    </div>
+                    <div class="todo-input-group" style="flex-shrink: 0;">
+                        <input type="text" id="todoInput" placeholder="Add a to-do..." autocomplete="off">
+                        <button id="addTodoBtn" title="Add Item">+</button>
+                    </div>
+                    <ul id="todoList" class="todo-list" style="flex-grow: 1; overflow-y: auto;">
+                        <!-- Items will be loaded here -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="home-main-content">
+                <div class="upload-card">
+                    <h1 class="upload-title">GATE Exam Interface</h1>
+                    <p class="upload-subtitle">Upload your exam JSON file to begin</p>
+
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" class="file-input" accept=".json">
+                        <label for="fileInput" class="file-label">Choose JSON File</label>
+                        <div id="fileName" class="file-name">No file selected</div>
+                    </div>
+
+                    <button id="startExam" class="btn-start" disabled>Start Exam</button>
+
+                    <!-- Custom Exam Builder -->
+                    <div class="custom-exam-builder">
+                        <h3>🛠️ Custom Practice Exam</h3>
+                        <p>Generate a mixed exam from your saved questions.</p>
+
+                        <div style="margin-bottom: 12px;">
+                            <label class="custom-input-label" style="margin-bottom: 6px; display: block;">Filter by
+                                Subject 📚</label>
+                            <select id="customSubjectFilter" class="subject-filter-select"
+                                onchange="filterCustomExamBySubject()">
+                                <option value="all">All Subjects</option>
+                            </select>
+                        </div>
+
+                        <div class="custom-inputs-row">
+                            <div class="custom-input-col">
+                                <label class="custom-input-label">From Bookmarks 📌</label>
+                                <input type="number" id="customBkqInput" min="0" max="50" value="5"
+                                    class="custom-num-input">
+                                <small class="avail-text" id="availBkq">Avail: 0</small>
+                            </div>
+                            <div class="custom-input-col">
+                                <label class="custom-input-label">From Mistakes 🤦</label>
+                                <input type="number" id="customSmInput" min="0" max="50" value="5"
+                                    class="custom-num-input">
+                                <small class="avail-text" id="availSm">Avail: 0</small>
+                            </div>
+                        </div>
+
+                        <button id="startCustomExamBtn" class="btn-start custom-exam-btn">
+                            Start Custom Exam ✨
+                        </button>
+                    </div>
+
+                    <div id="unfinishedExamActions" class="unfinished-actions" style="display:none;">
+                        <p class="unfinished-text">You have an unfinished exam in progress.</p>
+                        <div class="unfinished-btns">
+                            <button id="resumeExam" class="btn-resume">Resume Exam</button>
+                            <button id="discardExam" class="btn-discard">Discard & Start New</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="home-sidebar">
+                <div class="gate-countdown stat-card">
+                    <div class="stat-card-label">⏳ GATE 2027 In</div>
+                    <div class="stat-card-value" style="color: #3498db; font-size: 20px;" id="gateCountdownDisplay">
+                        Loading...</div>
+                    <div id="gateCalendarContainer"></div>
+                </div>
+
+                <!-- Subject Accuracy Card -->
+                <div class="subject-accuracy-card stat-card"
+                    style="background: rgba(243, 156, 18, 0.08); border: 1px solid rgba(243, 156, 18, 0.2);">
+                    <div class="stat-card-label" style="margin-bottom: 12px; letter-spacing: 0.8px;">
+                        📈 Subject Accuracy
+                    </div>
+
+                    <div style="position: relative; height: 140px; width: 100%; margin-bottom: 10px;">
+                        <canvas id="subjectAccuracyChartCanvas"></canvas>
+                        <div id="accuracyChartEmptyState"
+                            style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; align-items: center; justify-content: center; text-align: center; color: #888; font-size: 13px; font-weight: 500; padding: 10px;">
+                            Take exams to see your subject-wise accuracy here!
+                        </div>
+                    </div>
+
+                    <div id="accuracyMotivationalMsg"
+                        style="text-align: center; font-size: 12px; font-weight: 600; line-height: 1.4; padding: 8px 6px; border-radius: 6px; background: rgba(0,0,0,0.03);">
+                        Loading insights...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test History Section (Moved out of layout container for full width) -->
+        <div id="historySection" class="history-section"
+            style="display: none; width: 100%; max-width: 1200px; margin: 30px auto 0;">
+            <h2 class="history-title">📋 Test History</h2>
+
+            <!-- Progress Over Time Chart -->
+            <div
+                style="margin-bottom: 25px; padding: 15px; background: var(--card-bg); border-radius: 8px; border: 1px solid var(--border-color);">
+                <canvas id="historyProgressChart" style="height: 250px; width: 100%;"></canvas>
+            </div>
+
+            <div class="history-controls">
+                <input type="text" id="historySearch" placeholder="Search exams by title..." class="history-search"
+                    oninput="renderHistoryTable()">
+                <select id="historySubjectFilter" class="subject-filter-select history-sort"
+                    onchange="renderHistoryTable()">
+                    <option value="all">All Subjects</option>
+                </select>
+                <select id="historySort" class="history-sort" onchange="renderHistoryTable()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="score_high">Highest Score</option>
+                    <option value="score_low">Lowest Score</option>
+                </select>
+            </div>
+            <div class="history-table-wrapper">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Exam Title</th>
+                            <th>Date</th>
+                            <th>Percentage</th>
+                            <th>Marks</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div> <!-- End of uploadSection -->
+
+    <!-- Exam Section -->
+    <div id="examSection" class="exam-container" style="display: none;">
+
+        <!-- Top Header - GATE Branding -->
+        <div class="top-header">
+            <div class="logo-area">
+                <div class="gate-logo-circle"><img src="images/logo_iit_madras_without_background.png" alt="logo">
+                </div>
+            </div>
+            <div class="header-title-area">
+                <div class="exam-center-name">GRADUATE APTITUDE TEST IN ENGINEERING (GATE 2027)</div>
+                <div class="organizing-institute"> INDIAN INSTITUTE OF TECHNOLOGY MADRAS
+                </div>
+            </div>
+            <div class="header-right-logos">
+                <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle Dark Mode">
+                    <span class="icon-moon">🌙</span>
+                    <span class="icon-sun">☀️</span>
+                </button>
+                <div class="gate-logo-circle"><img src="images/bombayTheGoal.png" alt="The Goal"></div>
+            </div>
+        </div>
+
+        <!-- Sub Header - Exam Title Bar (Dark Teal) -->
+        <div class="sub-header">
+            <div class="subject-title" id="examTitle">GATE Exam</div>
+            <div class="right-tools">
+                <a href="#" class="header-link"><span class="link-icon">&#9432;</span> Instructions</a>
+                <a href="#" class="header-link" id="viewQuestionPaperBtn"><span class="link-icon">&#128196;</span>
+                    Question Paper</a>
+            </div>
+        </div>
+
+        <!-- Info Bar with Section Pill + Profile Name -->
+        <div class="info-bar">
+            <div class="info-bar-left">
+                <span class="nav-arrow">&lsaquo;</span>
+                <span class="section-pill" id="currentSectionPill">Section</span>
+                <span class="nav-arrow">&rsaquo;</span>
+            </div>
+            <div class="info-bar-right">
+                <span class="candidate-name-top" id="candidateName">AIR 1</span>
+            </div>
+        </div>
+
+        <!-- Section Tabs Bar -->
+        <div class="section-tabs-bar">
+            <div class="sections-label">Sections</div>
+            <div class="tabs-container" id="sectionTabs">
+                <!-- Tabs will be loaded here -->
+            </div>
+            <div class="tabs-nav-arrow">&rsaquo;</div>
+            <!-- <div class="question-timer-container">
+                <span class="question-timer-label">Q. Time :</span>
+                <div class="question-timer-display" id="questionTimerDisplay">00:00</div>
+            </div> -->
+            <div class="question-number-bar">
+                <button class="calc-icon-btn" id="calculatorBtn" title="Virtual Calculator">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="#3a9bd9">
+                        <rect x="2" y="2" width="20" height="20" rx="3" fill="#3a9bd9" />
+                        <rect x="5" y="4" width="14" height="5" rx="1" fill="#fff" />
+                        <rect x="5" y="11" width="3" height="3" rx="0.5" fill="#fff" />
+                        <rect x="10.5" y="11" width="3" height="3" rx="0.5" fill="#fff" />
+                        <rect x="16" y="11" width="3" height="3" rx="0.5" fill="#fff" />
+                        <rect x="5" y="16" width="3" height="3" rx="0.5" fill="#fff" />
+                        <rect x="10.5" y="16" width="3" height="3" rx="0.5" fill="#fff" />
+                        <rect x="16" y="16" width="3" height="3" rx="0.5" fill="#fff" />
+                    </svg>
+                </button>
+            </div>
+            <div class="timer-container">
+                <span class="time-left-label">Time Left :</span>
+                <div class="timer-display" id="timeDisplay">00:00:00</div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="exam-content">
+            <!-- Question Area -->
+            <div class="question-area">
+                <!-- Question Type & Marks bar -->
+                <div class="question-header-bar">
+                    <span class="q-type">Question Type: <span id="questionType">MCQ</span></span>
+                    <span class="q-marks-info" id="questionMarks">Marks for correct answer: 1 | Negative Marks:
+                        0.33</span>
+                </div>
+
+                <!-- Question Number & Calculator Icon -->
+                <div class="question-number-bar">
+                    <span class="q-no">Question No. <span id="questionNumber">1</span></span>
+                </div>
+
+                <!-- Question Text -->
+                <div class="question-text" id="questionText">
+                    Loading question...
+                </div>
+
+                <!-- Options -->
+                <div class="options-container" id="optionsContainer">
+                    <!-- Options loaded here -->
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <!-- Profile -->
+                <div class="profile-section">
+                    <div class="profile-pic-wrapper">
+                        <img src="images/profile_photo_without_background.png" alt="Profile" class="my-photo">
+                    </div>
+                    <div class="profile-details">
+                        <div id="candidateNameSidebar">AIR 1</div>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend-section">
+                    <div class="legend-grid">
+                        <div class="legend-item">
+                            <div class="legend-icon lg-answered" id="legendAnswered">0</div>
+                            <span>Answered</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon lg-not-answered" id="legendNotAnswered">0</div>
+                            <span>Not Answered</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon lg-not-visited" id="legendNotVisited">0</div>
+                            <span>Not Visited</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-icon lg-marked" id="legendMarked">0</div>
+                            <span>Marked for Review</span>
+                        </div>
+                        <div class="legend-item legend-item-full">
+                            <div class="legend-icon lg-marked-answered" id="legendMarkedAnswered">0</div>
+                            <span>Answered & Marked for Review (will also be evaluated)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Palette Header -->
+                <div class="palette-header" id="paletteHeader">
+                    Section
+                </div>
+                <div class="palette-sub-header">Choose a Question</div>
+
+                <!-- Question Palette -->
+                <div class="palette-container" id="questionPalette">
+                    <!-- Palette loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- FULL WIDTH Bottom Action Bar -->
+        <div class="bottom-action-bar">
+            <div class="bottom-left-btns">
+                <button class="btn btn-action-default" id="markReview">Mark for Review & Next</button>
+                <button class="btn btn-action-default" id="clearResponse">Clear Response</button>
+            </div>
+            <div class="bottom-center-btns">
+                <button class="btn btn-action-default" id="previousBtn">Previous</button>
+                <button class="btn btn-save-next" id="saveNext">Save & Next</button>
+            </div>
+            <div class="bottom-submit-btn">
+                <button class="btn btn-submit-main" id="submitBtn">Submit</button>
+            </div>
+        </div>
+
+        <!-- Version Footer -->
+        <div class="version-footer">
+            Version : 17.07.00
+        </div>
+    </div>
+
+    <!-- Submit Confirmation Modal -->
+    <div id="submitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Submit Confirmation</div>
+            <p>Are you sure you want to submit the test?</p>
+
+            <div class="summary-grid" id="summaryGrid">
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-cancel" id="cancelSubmit">Cancel</button>
+                <button class="btn btn-confirm" id="confirmSubmit">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram Settings Modal -->
+    <div id="tgModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">Telegram Auto-Backup Setup</div>
+            <p style="font-size:14px; color:#555; margin-bottom:15px; line-height:1.4;">Configure your bot token and
+                chat ID to automatically backup your data every day when you open this app.</p>
+
+            <div style="margin-bottom: 12px; text-align: left;">
+                <label style="font-weight: 600; font-size: 14px; display: block; margin-bottom: 5px;">Bot
+                    Token</label>
+                <input type="text" id="tgBotTokenInput" placeholder="e.g. 123456:ABC-DEF..."
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace;">
+            </div>
+
+            <div style="margin-bottom: 20px; text-align: left;">
+                <label style="font-weight: 600; font-size: 14px; display: block; margin-bottom: 5px;">Chat
+                    ID</label>
+                <input type="text" id="tgChatIdInput" placeholder="e.g. -100123456789"
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace;">
+                <small style="color: #7f8c8d; display:block; margin-top:4px;">Tip: Channel IDs typically start with
+                    -100, e.g. -1003885215959.</small>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-cancel" onclick="closeTgSettings()">Cancel</button>
+                <button class="btn btn-confirm" onclick="saveTgSettings(event)">Save & Test</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function handleExportData() {
+            if (confirm("This will download a full backup of all your exams, bookmarks, and silly mistakes. Proceed?")) {
+                const success = await downloadBackup();
+                if (success) alert("Backup downloaded successfully!");
+                else alert("Failed to backup data.");
+            }
+        }
+
+        async function handleImportData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (confirm("WARNING: Restoring data will OVERWRITE and REPLACE all your current exams, bookmarks, and silly mistakes with the data from the backup file. Are you sure you want to proceed?")) {
+                const reader = new FileReader();
+                reader.onload = async function (e) {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        await importAllData(jsonData);
+                        alert("Data restored successfully! The page will now reload.");
+                        location.reload();
+                    } catch (error) {
+                        alert("Error restoring data: " + error.message);
+                        console.error(error);
+                    }
+                };
+                reader.readAsText(file);
+            }
+            // Reset input
+            event.target.value = '';
+        }
+
+        // ============================================
+        // Telegram Auto-Backup Logic
+        // ============================================
+        function openTgSettings() {
+            document.getElementById('tgBotTokenInput').value = localStorage.getItem('tgBotToken') || '';
+            document.getElementById('tgChatIdInput').value = localStorage.getItem('tgChatId') || '';
+            document.getElementById('tgModal').style.display = 'flex';
+        }
+
+        function closeTgSettings() {
+            document.getElementById('tgModal').style.display = 'none';
+        }
+
+        async function saveTgSettings(event) {
+            const token = document.getElementById('tgBotTokenInput').value.trim();
+            const chatId = document.getElementById('tgChatIdInput').value.trim();
+
+            localStorage.setItem('tgBotToken', token);
+            localStorage.setItem('tgChatId', chatId);
+
+            if (token && chatId) {
+                const btn = event.target;
+                const oldText = btn.textContent;
+                btn.textContent = 'Testing...';
+
+                // Clear the 'last backup' date so it tests immediately
+                localStorage.removeItem('lastTelegramBackup');
+                await autoBackupToTelegram(true); // pass true for manual test
+
+                btn.textContent = oldText;
+            }
+            closeTgSettings();
+        }
+
+        async function autoBackupToTelegram(isTest = false) {
+            // Wait a moment for DB to initialize before backing up automatically
+            if (!isTest) await new Promise(r => setTimeout(r, 2000));
+
+            const token = localStorage.getItem('tgBotToken');
+            const chatId = localStorage.getItem('tgChatId');
+
+            if (!token || !chatId) return; // Not configured
+
+            const today = new Date().toISOString().split('T')[0];
+            const lastBackup = localStorage.getItem('lastTelegramBackup');
+
+            if (lastBackup === today && !isTest) {
+                console.log('Already backed up to Telegram today.');
+                return;
+            }
+
+            try {
+                const data = await exportAllData();
+                const jsonStr = JSON.stringify(data);
+                const file = new Blob([jsonStr], { type: 'application/json' });
+
+                const formData = new FormData();
+                formData.append('chat_id', chatId);
+                formData.append('document', file, `GATE_Exam_Backup_${today}.json`);
+                formData.append('caption', `Automated Daily Backup: ${today}`);
+
+                const response = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    localStorage.setItem('lastTelegramBackup', today);
+                    if (isTest) alert('✅ Success! Backup manually triggered and sent to Telegram.');
+                    else console.log('✅ Automated Telegram backup successful.');
+                } else {
+                    const err = await response.json();
+
+                    if (isTest) {
+                        alert('❌ Error sending to Telegram: ' + (err.description || 'Unknown error. Check token/ChatID'));
+                    }
+                    console.error('Failed to backup to Telegram:', err);
+                }
+            } catch (e) {
+                if (isTest) alert('❌ Connection error reaching Telegram API.');
+                console.error('Telegram backup error:', e);
+            }
+        }
+
+        function copyPromptText(btn) {
+            const pre = btn.closest('.pre-wrapper').querySelector('pre');
+            const text = pre.textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const span = btn.querySelector('span');
+                const originalText = span.textContent;
+                span.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    span.textContent = originalText;
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+
+    <script src="js/subject_detector.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/exam_script.js"></script>
+    <script>
+        // Load test history on page load
+        (async function () {
+            try {
+                await initDB();
+                loadHistory();
+                initHomeFeatures();
+
+                // Initialize Telegram credentials safely over here
+                if (!localStorage.getItem('tgBotToken')) {
+                    localStorage.setItem('tgBotToken', '');
+                }
+                if (!localStorage.getItem('tgChatId')) {
+                    // API chat IDs for channels generally require the -100 prefix
+                    localStorage.setItem('tgChatId', '');
+                }
+
+                // Trigger auto-backup check
+                autoBackupToTelegram();
+                initTodos();
+                loadStorageUsage();
+                loadSubjectAccuracyChart();
+            } catch (e) {
+                console.warn('Could not load history or trigger backup:', e);
+            }
+        })();
+
+        // Load and display storage usage
+        async function loadStorageUsage() {
+            try {
+                const usage = await getStorageUsage();
+                const el = document.getElementById('storageUsageValue');
+                if (el) {
+                    el.textContent = formatStorageSize(usage.used) + ' used';
+                    // Color code based on size
+                    const parent = el.parentElement;
+                    if (usage.used > 500 * 1024 * 1024) parent.style.color = '#e74c3c'; // > 500MB: red
+                    else if (usage.used > 100 * 1024 * 1024) parent.style.color = '#e67e22'; // > 100MB: orange
+                    else parent.style.color = '#27ae60'; // green
+                }
+            } catch (e) {
+                console.warn('Could not load storage usage:', e);
+            }
+        }
+
+        let allExams = [];
+
+        // Populate subject filter dropdowns using GATE_SUBJECTS from subject_detector.js
+        function populateSubjectDropdowns() {
+            if (typeof GATE_SUBJECTS === 'undefined') return;
+            const dropdowns = [document.getElementById('customSubjectFilter'), document.getElementById('historySubjectFilter')];
+            dropdowns.forEach(sel => {
+                if (!sel) return;
+                GATE_SUBJECTS.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = `${s.icon} ${s.name}`;
+                    sel.appendChild(opt);
+                });
+                // Add "Mixed / Other" option
+                const mixedOpt = document.createElement('option');
+                mixedOpt.value = 'mixed';
+                mixedOpt.textContent = '🎲 Mixed / Other';
+                sel.appendChild(mixedOpt);
+            });
+        }
+        populateSubjectDropdowns();
+
+        async function loadHistory() {
+            allExams = await getExamHistory();
+            renderHistoryTable();
+        }
+
+        // Global variable to track the currently selected date for the To-Do list
+        // Defaults to today's date in YYYY-MM-DD format
+        let currentTodoDate = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+        let currentDnTab = 'todo'; // 'todo' or 'notes'
+
+        // Initialize To-Dos
+        async function initTodos() {
+            try {
+                await initDB();
+                await renderTodoList();
+
+                document.getElementById('addTodoBtn').addEventListener('click', handleAddTodo);
+                document.getElementById('todoInput').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleAddTodo();
+                });
+
+                // Tab switching
+                document.querySelectorAll('.dn-tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('.dn-tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        currentDnTab = tab.getAttribute('data-tab');
+
+                        // Update placeholder
+                        const input = document.getElementById('todoInput');
+                        input.placeholder = currentDnTab === 'todo' ? 'Add a to-do...' : 'Add a note...';
+                        input.focus();
+
+                        renderTodoList();
+                    });
+                });
+            } catch (e) {
+                console.warn('Could not load To-Dos:', e);
+            }
+        }
+
+        // Expose function for the Streak Calendar to call when a date is clicked
+        window.selectTodoDate = async function (dateStr) {
+            currentTodoDate = dateStr;
+
+            // Format for display
+            const d = new Date(dateStr);
+            const displayTitle = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+            // If today, label it "Daily Notes", else specific date
+            const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+            const headerLabel = document.getElementById('todoHeaderLabel');
+            if (dateStr === todayStr) {
+                headerLabel.textContent = "📝 DAILY NOTES";
+            } else {
+                headerLabel.textContent = `📝 Notes: ${displayTitle}`;
+            }
+
+            // Animate refresh
+            const listEl = document.getElementById('todoList');
+            if (listEl) {
+                listEl.style.opacity = '0.5';
+                await renderTodoList();
+                listEl.style.opacity = '1';
+            }
+        };
+
+        async function renderTodoList() {
+            const listEl = document.getElementById('todoList');
+            if (!listEl) return;
+
+            try {
+                // Fetch all items for this date then filter by current tab type
+                const allItems = await getTodosByDate(currentTodoDate);
+                const filterType = currentDnTab === 'notes' ? 'note' : 'todo';
+                const items = allItems.filter(item => {
+                    const itemType = item.type || 'todo'; // backward compat: old items default to 'todo'
+                    return itemType === filterType;
+                });
+
+                if (items.length === 0) {
+                    const emptyMsg = currentDnTab === 'todo'
+                        ? 'No to-dos for today. Add one above!'
+                        : 'No notes for today. Add one above!';
+                    listEl.innerHTML = `<div class="todo-empty-state">${emptyMsg}</div>`;
+                    return;
+                }
+
+                items.sort((a, b) => new Date(a.dateCreated) - new Date(b.dateCreated));
+
+                if (currentDnTab === 'todo') {
+                    // To-Do mode: checkboxes + edit + delete
+                    listEl.innerHTML = items.map(todo => `
+                        <li class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
+                            <div class="todo-content">
+                                <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''} onchange="handleToggleTodo(${todo.id}, this.checked)">
+                                <span class="todo-text">${escapeHtml(todo.text)}</span>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="todo-edit-btn" onclick="handleEditTodo(${todo.id})" title="Edit">✏️</button>
+                                <button class="todo-delete-btn" onclick="handleDeleteTodo(${todo.id})" title="Delete">&#10005;</button>
+                            </div>
+                        </li>
+                    `).join('');
+                } else {
+                    // Notes mode: bullet points + edit + delete
+                    listEl.innerHTML = items.map(note => `
+                        <li class="todo-item" data-id="${note.id}">
+                            <div class="todo-content">
+                                <span class="note-bullet"></span>
+                                <span class="todo-text">${escapeHtml(note.text)}</span>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="todo-edit-btn" onclick="handleEditTodo(${note.id})" title="Edit">✏️</button>
+                                <button class="todo-delete-btn" onclick="handleDeleteTodo(${note.id})" title="Delete">&#10005;</button>
+                            </div>
+                        </li>
+                    `).join('');
+                }
+
+            } catch (e) {
+                console.error("Error rendering todos:", e);
+                listEl.innerHTML = '<div class="todo-empty-state" style="color:#e74c3c;">Failed to load items.</div>';
+            }
+        }
+
+        // Inline edit: replaces text with an input field
+        window.handleEditTodo = function (id) {
+            const li = document.querySelector(`.todo-item[data-id="${id}"]`);
+            if (!li) return;
+            const textSpan = li.querySelector('.todo-text');
+            const oldText = textSpan.textContent;
+
+            // Create inline input
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = oldText;
+            input.className = 'todo-edit-input';
+
+            // Replace span with input
+            textSpan.replaceWith(input);
+            input.focus();
+            input.select();
+
+            // Hide edit button while editing
+            const editBtn = li.querySelector('.todo-edit-btn');
+            if (editBtn) editBtn.style.display = 'none';
+
+            const save = async () => {
+                const newText = input.value.trim();
+                if (newText && newText !== oldText) {
+                    try {
+                        await updateTodoTextInDB(id, newText);
+                    } catch (e) {
+                        console.error("Error updating todo:", e);
+                    }
+                }
+                await renderTodoList();
+            };
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { e.preventDefault(); save(); }
+                if (e.key === 'Escape') { renderTodoList(); }
+            });
+            input.addEventListener('blur', save);
+        };
+
+        async function handleAddTodo() {
+            const input = document.getElementById('todoInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            try {
+                input.value = '';
+                await saveTodoToDB(text, currentTodoDate, currentDnTab === 'notes' ? 'note' : 'todo');
+                await renderTodoList();
+                // Refresh calendar to show the dot marker if this was the first task
+                if (typeof loadCalendar === 'function') loadCalendar();
+            } catch (e) {
+                console.error("Error adding todo:", e);
+            }
+        }
+
+        window.handleToggleTodo = async function (id, completed) {
+            try {
+                await toggleTodoInDB(id, completed);
+                await renderTodoList();
+            } catch (e) {
+                console.error("Error toggling todo:", e);
+            }
+        };
+
+        window.handleDeleteTodo = async function (id) {
+            try {
+                await removeTodoFromDB(id);
+                await renderTodoList();
+                // Refresh calendar to potentially remove the dot marker
+                if (typeof loadCalendar === 'function') loadCalendar();
+            } catch (e) {
+                console.error("Error deleting todo:", e);
+            }
+        };
+
+        function escapeHtml(unsafe) {
+            return (unsafe || '').toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function renderHistoryTable() {
+            const section = document.getElementById('historySection');
+            const tbody = document.getElementById('historyBody');
+
+            if (allExams.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+
+            const searchInput = document.getElementById('historySearch');
+            const sortSelect = document.getElementById('historySort');
+
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            const sortBy = sortSelect ? sortSelect.value : 'newest';
+
+            // Subject filter
+            const subjectFilterEl = document.getElementById('historySubjectFilter');
+            const subjectFilter = subjectFilterEl ? subjectFilterEl.value : 'all';
+
+            let filtered = allExams.filter(exam => {
+                // Text search filter
+                if (!exam.title.toLowerCase().includes(searchTerm)) return false;
+                // Subject filter
+                if (subjectFilter !== 'all') {
+                    const detected = (typeof detectSubject === 'function') ? detectSubject(exam.title) : null;
+                    if (subjectFilter === 'mixed') {
+                        if (detected !== null) return false; // "mixed" means undetected subject
+                    } else {
+                        if (!detected || detected.id !== subjectFilter) return false;
+                    }
+                }
+                return true;
+            });
+
+            filtered.sort((a, b) => {
+                if (sortBy === 'newest') return new Date(b.date) - new Date(a.date);
+                if (sortBy === 'oldest') return new Date(a.date) - new Date(b.date);
+
+                // Use the exact same percentage formula as the display table
+                const scoreA = parseFloat(a.max_marks) > 0 ? (parseFloat(a.total_marks) / parseFloat(a.max_marks)) * 100 : 0;
+                const scoreB = parseFloat(b.max_marks) > 0 ? (parseFloat(b.total_marks) / parseFloat(b.max_marks)) * 100 : 0;
+
+                if (sortBy === 'score_high') return scoreB - scoreA;
+                if (sortBy === 'score_low') return scoreA - scoreB;
+
+                return 0;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No matching exams found.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map((exam, i) => {
+                const date = new Date(exam.date).toLocaleDateString('en-IN', {
+                    day: '2-digit', month: 'short', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+                const percentage = parseFloat(exam.max_marks) > 0
+                    ? ((parseFloat(exam.total_marks) / parseFloat(exam.max_marks)) * 100).toFixed(2)
+                    : '0.00';
+
+                let scoreText = `${percentage}%`;
+                if (isNaN(percentage)) scoreText = '0.00%';
+
+                const marks = `${parseFloat(exam.total_marks).toFixed(2)}/${exam.max_marks}`;
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td class="hist-title">${exam.title}</td>
+                        <td>${date}</td>
+                        <td><span class="hist-score">${scoreText}</span></td>
+                        <td><span class="hist-marks">${marks}</span></td>
+                        <td class="hist-actions">
+                            <button class="btn-hist btn-view" onclick="viewExam(${exam.id})">View</button>
+                            <button class="btn-hist btn-delete" onclick="deleteExamEntry(${exam.id})">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Render Chart
+            renderHistoryChart(filtered);
+        }
+
+        function renderHistoryChart(exams) {
+            const ctx = document.getElementById('historyProgressChart');
+            if (!ctx || exams.length === 0) return;
+
+            if (window.historyChart) {
+                window.historyChart.destroy();
+            }
+
+            // We need to sort chronologically for the chart, even if the table is sorted differently
+            const chronologicalExams = [...exams].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const recentExams = chronologicalExams.slice(-20); // Show up to last 20 for readability
+
+            const labels = recentExams.map(e => {
+                const d = new Date(e.date);
+                return `${d.getDate()}/${d.getMonth() + 1}`;
+            });
+
+            const dataPoints = recentExams.map(e =>
+                parseFloat(e.max_marks) > 0 ? ((parseFloat(e.total_marks) / parseFloat(e.max_marks)) * 100).toFixed(1) : 0
+            );
+
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            const textColor = isDark ? '#d8d8e4' : '#333';
+            const gridColor = isDark ? '#333' : '#ddd';
+
+            window.historyChart = new Chart(ctx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Score %',
+                        data: dataPoints,
+                        borderColor: '#95a5a6',
+                        backgroundColor: 'rgba(149, 165, 166, 0.2)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: '#7f8c8d',
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#3498db',
+                        pointHoverBorderColor: '#fff',
+                        pointHoverBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    onHover: (event, elements) => {
+                        ctx.style.cursor = elements.length > 0 ? 'pointer' : 'default';
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const exam = recentExams[index];
+                            if (exam && exam.id) {
+                                viewExam(exam.id);
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: { color: gridColor },
+                            ticks: { color: textColor }
+                        },
+                        x: {
+                            grid: { color: gridColor },
+                            ticks: { color: textColor }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: (tooltipItems) => {
+                                    const idx = tooltipItems[0].dataIndex;
+                                    const exam = recentExams[idx];
+                                    return exam ? exam.title : '';
+                                },
+                                label: (ctx) => `Score: ${ctx.parsed.y}%`,
+                                afterLabel: () => '(Click to view details)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // Subject-Wise Accuracy Radar Chart
+        // ============================================
+        async function loadSubjectAccuracyChart() {
+            try {
+                const exams = await getExamHistory();
+                const ctx = document.getElementById('subjectAccuracyChartCanvas');
+                const emptyState = document.getElementById('accuracyChartEmptyState');
+                const motivationalMsg = document.getElementById('accuracyMotivationalMsg');
+
+                if (!ctx) return;
+
+                if (!exams || exams.length === 0) {
+                    ctx.style.display = 'none';
+                    if (emptyState) emptyState.style.display = 'flex';
+                    if (motivationalMsg) motivationalMsg.textContent = 'Ready to start your preparation?';
+                    return;
+                }
+
+                if (emptyState) emptyState.style.display = 'none';
+                ctx.style.display = 'block';
+
+                // Aggregate data by subject
+                const subjectStats = {};
+
+                // Initialize all known subjects to ensure they appear on the radar
+                if (typeof GATE_SUBJECTS !== 'undefined') {
+                    GATE_SUBJECTS.forEach(sub => {
+                        subjectStats[sub.id] = {
+                            name: sub.name,
+                            shortName: sub.name.split(' ').map(w => w[0]).join('').toUpperCase().substring(0, 4), // like DBMS, TOC
+                            icon: sub.icon,
+                            color: sub.color,
+                            totalMarksEarned: 0,
+                            totalMaxMarks: 0,
+                            examCount: 0
+                        };
+                    });
+                }
+
+                // Process exams
+                exams.forEach(exam => {
+                    const subject = (typeof detectSubject === 'function') ? detectSubject(exam.title) : null;
+                    if (subject && subjectStats[subject.id]) {
+                        const earned = parseFloat(exam.total_marks);
+                        const max = parseFloat(exam.max_marks);
+
+                        if (!isNaN(earned) && !isNaN(max) && max > 0) {
+                            subjectStats[subject.id].totalMarksEarned += earned;
+                            subjectStats[subject.id].totalMaxMarks += max;
+                            subjectStats[subject.id].examCount += 1;
+                        }
+                    }
+                });
+
+                // Prepare Chart Data
+                const labels = [];
+                const dataPoints = [];
+                const bgColors = [];
+                const borderColors = [];
+
+                let weakestSubject = null;
+                let lowestAcc = 101; // higher than max possible 100
+
+                // Filter out subjects with 0 exams to keep the chart clean, 
+                // but if we have fewer than 3 subjects with data, we might need a simple bar chart or keep them
+                Object.values(subjectStats).forEach(stat => {
+                    if (stat.examCount > 0) {
+                        // We use the short name to save space on the radar chart
+                        labels.push(stat.shortName || stat.name);
+
+                        // Calculate average accuracy
+                        let acc = 0;
+                        if (stat.totalMaxMarks > 0) {
+                            acc = (stat.totalMarksEarned / stat.totalMaxMarks) * 100;
+                            // Clamp to 0 in case of negative marks overriding
+                            if (acc < 0) acc = 0;
+                        }
+                        dataPoints.push(acc.toFixed(1));
+                        bgColors.push(stat.color + '40'); // 40 is hex for 25% opacity
+                        borderColors.push(stat.color);
+
+                        if (acc < lowestAcc) {
+                            lowestAcc = acc;
+                            weakestSubject = stat;
+                        }
+                    }
+                });
+
+                // Use a clean horizontal bar chart for the sidebar space
+                const chartType = 'bar';
+
+                // Set motivational text
+                if (motivationalMsg) {
+                    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                    if (weakestSubject && labels.length > 0) {
+                        motivationalMsg.innerHTML = `💪 Focus on <span style="color: ${weakestSubject.color}; font-weight: bold;">${weakestSubject.name}</span> — you can improve!`;
+                        motivationalMsg.style.background = isDark ? `${weakestSubject.color}15` : `${weakestSubject.color}15`;
+                    } else if (labels.length > 0) {
+                        motivationalMsg.textContent = "Keep up the great work! 🌟";
+                    } else {
+                        ctx.style.display = 'none';
+                        if (emptyState) {
+                            emptyState.style.display = 'flex';
+                            emptyState.innerHTML = 'Take some subject-specific exams to see your accuracy!';
+                        }
+                        motivationalMsg.textContent = 'No subject data yet.';
+                        return;
+                    }
+                }
+
+                if (window.subjectAccuracyChart) {
+                    window.subjectAccuracyChart.destroy();
+                }
+
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+                const textColor = isDark ? '#d8d8e4' : '#666';
+
+                // Configure chart options based on type
+                const chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => ` Accuracy: ${ctx.raw}%`
+                            }
+                        }
+                    }
+                };
+
+                chartOptions.indexAxis = 'y';
+                chartOptions.scales = {
+                    x: {
+                        min: 0,
+                        max: 100,
+                        grid: { color: gridColor },
+                        ticks: { color: textColor, font: { size: 10 } }
+                    },
+                    y: {
+                        grid: { display: false },
+                        ticks: { color: textColor, font: { size: 10, weight: 'bold' } }
+                    }
+                };
+
+                window.subjectAccuracyChart = new Chart(ctx.getContext('2d'), {
+                    type: chartType,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Accuracy %',
+                            data: dataPoints,
+                            backgroundColor: bgColors,
+                            borderColor: borderColors,
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: chartOptions
+                });
+
+            } catch (e) {
+                console.error('Error loading subject accuracy chart:', e);
+            }
+        }
+
+        // ============================================
+        // Daily Streak & GATE Countdown Logic
+        // ============================================
+        function initHomeFeatures() {
+            // 1. GATE 2027 Countdown (Target: Feb 1, 2027)
+            const targetDate = new Date("2027-02-01T00:00:00").getTime();
+            const countdownEl = document.getElementById('gateCountdownDisplay');
+
+            function updateCountdown() {
+                const now = new Date().getTime();
+                const diff = targetDate - now;
+
+                if (diff <= 0) {
+                    countdownEl.textContent = "It's Exam Day!";
+                    return;
+                }
+
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                countdownEl.textContent = `${days}d ${hours}h`;
+            }
+
+            updateCountdown();
+            setInterval(updateCountdown, 1000 * 60 * 60); // Update every hour is enough for "days + hours"
+
+            // 2. GATE 2027 Calendar Logic
+            function loadGateCalendar() {
+                const container = document.getElementById('gateCalendarContainer');
+                if (!container) return;
+
+                // Set to the 1st of the month immediately to prevent the 31st-to-30th rollover bug
+                let currentGateCalDate = new Date();
+                currentGateCalDate.setDate(1);
+
+                // Use Event Delegation: Attach ONE event listener to the container
+                container.addEventListener('click', (e) => {
+                    if (e.target.id === 'gateCalPrevBtn') {
+                        currentGateCalDate.setMonth(currentGateCalDate.getMonth() - 1);
+                        renderGateCalendar(currentGateCalDate);
+                    } else if (e.target.id === 'gateCalNextBtn') {
+                        currentGateCalDate.setMonth(currentGateCalDate.getMonth() + 1);
+                        renderGateCalendar(currentGateCalDate);
+                    }
+                });
+
+                function renderGateCalendar(dateObj) {
+                    const year = dateObj.getFullYear();
+                    const month = dateObj.getMonth();
+
+                    const firstDay = new Date(year, month, 1).getDay();
+                    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+                    // Calculate "today" variables ONCE outside the loop
+                    const today = new Date();
+                    const todayYear = today.getFullYear();
+                    const todayMonth = today.getMonth();
+                    const todayDate = today.getDate();
+
+                    // Midnight today for easy past/future comparison
+                    const todayMidnightTime = new Date(todayYear, todayMonth, todayDate).getTime();
+
+                    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+                    let html = `
+            <div class="calendar-nav">
+                <button class="cal-nav-btn" id="gateCalPrevBtn">&lt;</button>
+                <span style="font-size: 14px;">${monthNames[month]} ${year}</span>
+                <button class="cal-nav-btn" id="gateCalNextBtn">&gt;</button>
+            </div>
+            <div class="streak-calendar">
+                <div class="calendar-header-day">S</div>
+                <div class="calendar-header-day">M</div>
+                <div class="calendar-header-day">T</div>
+                <div class="calendar-header-day">W</div>
+                <div class="calendar-header-day">T</div>
+                <div class="calendar-header-day">F</div>
+                <div class="calendar-header-day">S</div>
+        `;
+
+                    // Empty slots
+                    for (let i = 0; i < firstDay; i++) {
+                        html += `<div></div>`;
+                    }
+
+                    // Days loop
+                    for (let day = 1; day <= daysInMonth; day++) {
+                        const currentIterTime = new Date(year, month, day).getTime();
+
+                        // Simple integer comparison is faster than string building
+                        const isToday = (year === todayYear && month === todayMonth && day === todayDate);
+                        const isPast = currentIterTime < todayMidnightTime;
+
+                        let classes = 'calendar-day';
+                        if (isToday) classes += ' today';
+                        if (isPast) classes += ' crossed-out';
+
+                        html += `<div class="${classes}">${day}</div>`;
+                    }
+
+                    html += `</div>`;
+                    container.innerHTML = html;
+                }
+
+                renderGateCalendar(currentGateCalDate);
+            }
+
+            loadGateCalendar();
+
+            // // 2. GATE 2027 Calendar Logic
+            // function loadGateCalendar() {
+            //     let currentGateCalDate = new Date(); // Start with current month
+
+            //     function renderGateCalendar(dateObj) {
+            //         const container = document.getElementById('gateCalendarContainer');
+            //         if (!container) return;
+
+            //         const year = dateObj.getFullYear();
+            //         const month = dateObj.getMonth();
+
+            //         const firstDay = new Date(year, month, 1).getDay();
+            //         const daysInMonth = new Date(year, month + 1, 0).getDate();
+            //         const today = new Date();
+            //         const todayDateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            //         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+            //         let html = `
+            //                 <div class="calendar-nav">
+            //                     <button class="cal-nav-btn" id="gateCalPrevBtn">&lt;</button>
+            //                     <span style="font-size: 14px;">${monthNames[month]} ${year}</span>
+            //                     <button class="cal-nav-btn" id="gateCalNextBtn">&gt;</button>
+            //                 </div>
+            //                 <div class="streak-calendar">
+            //                     <div class="calendar-header-day">S</div>
+            //                     <div class="calendar-header-day">M</div>
+            //                     <div class="calendar-header-day">T</div>
+            //                     <div class="calendar-header-day">W</div>
+            //                     <div class="calendar-header-day">T</div>
+            //                     <div class="calendar-header-day">F</div>
+            //                     <div class="calendar-header-day">S</div>
+            //             `;
+
+            //         // Empty slots
+            //         for (let i = 0; i < firstDay; i++) {
+            //             html += `<div></div>`;
+            //         }
+
+            //         for (let day = 1; day <= daysInMonth; day++) {
+            //             const currentIterDate = new Date(year, month, day);
+            //             const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            //             const isToday = (dateStr === todayDateStr);
+
+            //             // Check if the day has passed (ignoring time)
+            //             const isPast = currentIterDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+            //             let classes = 'calendar-day';
+            //             if (isToday) classes += ' today';
+            //             if (isPast) classes += ' crossed-out';
+
+            //             html += `<div class="${classes}">${day}</div>`;
+            //         }
+
+            //         html += `</div>`;
+            //         container.innerHTML = html;
+
+            //         document.getElementById('gateCalPrevBtn').addEventListener('click', () => {
+            //             currentGateCalDate.setMonth(currentGateCalDate.getMonth() - 1);
+            //             renderGateCalendar(currentGateCalDate);
+            //         });
+
+            //         document.getElementById('gateCalNextBtn').addEventListener('click', () => {
+            //             currentGateCalDate.setMonth(currentGateCalDate.getMonth() + 1);
+            //             renderGateCalendar(currentGateCalDate);
+            //         });
+            //     }
+
+            //     renderGateCalendar(currentGateCalDate);
+            // }
+
+            // loadGateCalendar();
+
+            // 3. Daily Streak Logic
+            const streakEl = document.getElementById('streakCountDisplay');
+
+            // Calendar Rendering & Streak logic
+            async function loadCalendar() {
+                try {
+                    await initDB();
+                    const history = await getExamHistory();
+
+                    // Collect all unique dates in YYYY-MM-DD local format for active streak days
+                    const activeDates = new Set();
+                    history.forEach(ex => {
+                        if (ex.date) {
+                            const d = new Date(ex.date);
+                            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                            activeDates.add(dateStr);
+                        }
+                    });
+
+                    // Collect all unique dates that have To-Dos
+                    const allTodos = await getAllTodos();
+                    const todoDates = new Set();
+                    allTodos.forEach(todo => {
+                        if (todo.targetDate) {
+                            todoDates.add(todo.targetDate);
+                        }
+                    });
+
+                    // Calculate Current Streak
+                    let calculatedStreak = 0;
+                    const today = new Date();
+
+                    // Start checking from today backwards
+                    let checkDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                    while (true) {
+                        const dateStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+
+                        // If today is not in activeDates, but yesterday is, streak still counts (haven't played today yet)
+                        if (calculatedStreak === 0 && !activeDates.has(dateStr)) {
+                            // It's today, we check yesterday
+                            checkDate.setDate(checkDate.getDate() - 1);
+                            const yesterdayStr = `${checkDate.getFullYear()}-${String(checkDate.getMonth() + 1).padStart(2, '0')}-${String(checkDate.getDate()).padStart(2, '0')}`;
+                            if (!activeDates.has(yesterdayStr)) {
+                                break; // No streak
+                            }
+                            // If yesterday has activity, we start streak from yesterday
+                        } else if (activeDates.has(dateStr)) {
+                            calculatedStreak++;
+                            checkDate.setDate(checkDate.getDate() - 1);
+                        } else {
+                            break; // Streak broken
+                        }
+                    }
+
+                    streakEl.textContent = `${calculatedStreak} Day${calculatedStreak !== 1 ? 's' : ''}`;
+
+                    // Save it for reference if needed elsewhere
+                    localStorage.setItem('dailyStreakCount', calculatedStreak.toString());
+
+                    let currentCalDate = new Date(); // Start with current month
+
+                    function renderCalendar(dateObj) {
+                        const container = document.getElementById('streakCalendarContainer');
+                        if (!container) return;
+
+                        const year = dateObj.getFullYear();
+                        const month = dateObj.getMonth();
+
+                        const firstDay = new Date(year, month, 1).getDay();
+                        const daysInMonth = new Date(year, month + 1, 0).getDate();
+                        const todayDateStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+
+                        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+                        let html = `
+                            <div class="calendar-nav">
+                                <button class="cal-nav-btn" id="calPrevBtn">&lt;</button>
+                                <span>${monthNames[month]} ${year}</span>
+                                <button class="cal-nav-btn" id="calNextBtn">&gt;</button>
+                            </div>
+                            <div class="streak-calendar">
+                                <div class="calendar-header-day">S</div>
+                                <div class="calendar-header-day">M</div>
+                                <div class="calendar-header-day">T</div>
+                                <div class="calendar-header-day">W</div>
+                                <div class="calendar-header-day">T</div>
+                                <div class="calendar-header-day">F</div>
+                                <div class="calendar-header-day">S</div>
+                        `;
+
+                        // Empty slots before 1st of month
+                        for (let i = 0; i < firstDay; i++) {
+                            html += `<div></div>`;
+                        }
+
+                        for (let day = 1; day <= daysInMonth; day++) {
+                            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                            const isActive = activeDates.has(dateStr);
+                            const hasTodos = todoDates.has(dateStr);
+                            const isToday = (dateStr === todayDateStr);
+
+                            let classes = 'calendar-day';
+                            if (isActive) classes += ' active-day';
+                            if (isToday) classes += ' today';
+                            if (hasTodos) classes += ' has-todos';
+                            if (dateStr === currentTodoDate) classes += ' selected-date'; // highlight selection
+
+                            html += `<div class="${classes}" style="cursor: pointer;" onclick="selectTodoDate('${dateStr}')">${day}</div>`;
+                        }
+
+                        html += `</div>`;
+                        container.innerHTML = html;
+
+                        document.getElementById('calPrevBtn').addEventListener('click', () => {
+                            currentCalDate.setMonth(currentCalDate.getMonth() - 1);
+                            renderCalendar(currentCalDate);
+                        });
+
+                        document.getElementById('calNextBtn').addEventListener('click', () => {
+                            // Don't allow navigating past current month if we don't want to, but it's fine
+                            currentCalDate.setMonth(currentCalDate.getMonth() + 1);
+                            renderCalendar(currentCalDate);
+                        });
+                    }
+
+                    renderCalendar(currentCalDate);
+
+                } catch (e) {
+                    console.warn("Could not load calendar data", e);
+                }
+            }
+            loadCalendar();
+
+            // 3. Custom Exam Builder logic
+            let allBkqs = [];  // Master unfiltered lists
+            let allSms = [];
+            let availBkqs = [];  // Currently filtered lists
+            let availSms = [];
+
+            function updateCustomExamCounts() {
+                document.getElementById('availBkq').textContent = `Avail: ${availBkqs.length}`;
+                document.getElementById('availSm').textContent = `Avail: ${availSms.length}`;
+                document.getElementById('customBkqInput').max = availBkqs.length;
+                document.getElementById('customSmInput').max = availSms.length;
+                // Clamp current values to not exceed available
+                const bkqInput = document.getElementById('customBkqInput');
+                const smInput = document.getElementById('customSmInput');
+                if (parseInt(bkqInput.value) > availBkqs.length) bkqInput.value = availBkqs.length;
+                if (parseInt(smInput.value) > availSms.length) smInput.value = availSms.length;
+            }
+
+            // Global function called by the subject filter dropdown
+            window.filterCustomExamBySubject = function () {
+                const subjectFilter = document.getElementById('customSubjectFilter').value;
+                if (subjectFilter === 'all') {
+                    availBkqs = [...allBkqs];
+                    availSms = [...allSms];
+                } else {
+                    const filterFn = (q) => {
+                        const detected = (typeof detectSubject === 'function') ? detectSubject(q.examTitle) : null;
+                        if (subjectFilter === 'mixed') return detected === null;
+                        return detected && detected.id === subjectFilter;
+                    };
+                    availBkqs = allBkqs.filter(filterFn);
+                    availSms = allSms.filter(filterFn);
+                }
+                updateCustomExamCounts();
+            };
+
+            async function loadAvailableQuestions() {
+                try {
+                    await initDB();
+                    allBkqs = (await getAllBookmarks()) || [];
+                    allSms = (await getAllSillyMistakes()) || [];
+                    availBkqs = [...allBkqs];
+                    availSms = [...allSms];
+                    updateCustomExamCounts();
+                } catch (e) {
+                    console.warn("Could not load custom exam sources", e);
+                }
+            }
+
+            loadAvailableQuestions();
+
+            document.getElementById('startCustomExamBtn').addEventListener('click', async () => {
+                const numBkq = Math.min(parseInt(document.getElementById('customBkqInput').value) || 0, availBkqs.length);
+                const numSm = Math.min(parseInt(document.getElementById('customSmInput').value) || 0, availSms.length);
+
+                if (numBkq === 0 && numSm === 0) {
+                    alert("Please select at least 1 question to build a custom exam.");
+                    return;
+                }
+
+                // Optimal selection prioritizing unseen questions using IndexedDB tracking
+                const getSelection = async (pool, count, trackerType) => {
+                    if (count === 0 || pool.length === 0) return [];
+
+                    let usedHashes = await getUsedCustomExamHashes(trackerType);
+                    let unused = pool.filter(q => !usedHashes.has(q.questionHash));
+
+                    // If we need more questions than what's unused, we reset history and pick from full pool
+                    if (unused.length < count) {
+                        await clearCustomExamTracker(trackerType);
+                        usedHashes.clear();
+                        unused = [...pool];
+                    }
+
+                    // Fisher-Yates shuffle for optimal unbiased randomness
+                    const shuffleArr = (arr) => {
+                        for (let i = arr.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [arr[i], arr[j]] = [arr[j], arr[i]];
+                        }
+                        return arr;
+                    };
+
+                    shuffleArr(unused);
+                    const selected = unused.slice(0, count);
+
+                    // Update history in IndexedDB
+                    await saveUsedCustomExamHashes(selected.map(q => q.questionHash), trackerType);
+
+                    return selected;
+                };
+
+                const selectedBkqs = await getSelection(availBkqs, numBkq, 'bkq');
+                const selectedSms = await getSelection(availSms, numSm, 'sm');
+
+                // Combine and deduplicate (in case same question is in both)
+                const allSelected = [...selectedBkqs, ...selectedSms];
+                const uniqueQuestions = [];
+                const hashes = new Set();
+
+                allSelected.forEach(q => {
+                    if (!hashes.has(q.questionHash)) {
+                        hashes.add(q.questionHash);
+                        uniqueQuestions.push(q);
+                    }
+                });
+
+                // Final shuffle using Fisher-Yates
+                const shuffleFinal = (arr) => {
+                    for (let i = arr.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [arr[i], arr[j]] = [arr[j], arr[i]];
+                    }
+                    return arr;
+                };
+                shuffleFinal(uniqueQuestions);
+
+                const customExamData = {
+                    title: `Custom Revision Exam (${uniqueQuestions.length} Qs)`,
+                    duration: Math.max(10, Math.ceil(uniqueQuestions.length * 3)), // 3 mins per question avg
+                    sections: [{
+                        name: "Mixed Revision",
+                        questions: uniqueQuestions.map((q, idx) => ({
+                            id: idx + 1,
+                            question: q.questionText,
+                            type: q.type || 'single',
+                            options: q.options || [],
+                            correct_answer: q.correctAnswer,
+                            marks: q.maxMarks || 1,
+                            negative_marks: q.negativeMarks || 0,
+                            explanation: q.explanation || ''
+                        }))
+                    }]
+                };
+
+                // Assign to global examData and initialize directly
+                examData = customExamData;
+                shuffleExamData();
+                initializeQuestionStates();
+
+                if (window.enterFullScreen) window.enterFullScreen();
+                toggleHomeView(false);
+                document.getElementById('examSection').style.display = 'flex';
+
+                startExam();
+            });
+        }
+
+        // Expose function to update streak when exam is submitted (called from exam_script.js or result_script.js if needed)
+        // But better to update it right when the exam finishes and saves to DB. 
+        // We can just rely on localStorage being updated from result_script.js
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'dailyStreakCount') {
+                const currentStreak = parseInt(e.newValue || '0');
+                document.getElementById('streakCountDisplay').textContent = `${currentStreak} Day${currentStreak !== 1 ? 's' : ''}`;
+            }
+        });
+
+        async function viewExam(examId) {
+            const details = await getExamDetails(examId);
+            const exam = allExams.find(e => e.id === examId); // Use cached data (fix #12)
+            if (!exam || details.length === 0) return;
+
+            // Build result data in the same format as live exam results
+            const summary = {
+                correct: exam.correct,
+                incorrect: exam.incorrect,
+                unanswered: exam.unanswered,
+                totalMarks: exam.total_marks.toFixed(2),
+                maxTotalMarks: exam.max_marks.toFixed(2),
+                totalQuestions: exam.total_questions,
+                timestamp: exam.date,
+                title: exam.title
+            };
+            const detailsFormatted = details.map(d => ({
+                questionId: d.question_id,
+                questionText: d.question_text,
+                userAnswer: d.user_answer,
+                userAnswerDisplay: (function () {
+                    if (d.type === 'nat' || d.type === 'numerical' || d.type === 'numeric') return d.user_answer || 'Not Attempted';
+                    if (d.user_answer === null || d.user_answer === undefined || d.user_answer === '') return 'Not Attempted';
+                    const arr = Array.isArray(d.user_answer) ? d.user_answer : [d.user_answer];
+                    return arr.length > 0 ? arr.map(idx => (d.options && d.options[idx] !== undefined) ? d.options[idx] : idx).join(', ') : 'Not Attempted';
+                })(),
+                correctAnswer: d.correct_answer,
+                correctAnswerDisplay: Array.isArray(d.correct_answer) ? d.correct_answer.join(', ') : d.correct_answer,
+                status: d.status,
+                options: d.options,
+                type: d.type,
+                explanation: d.explanation,
+                timeSpent: d.time_spent,
+                marksObtained: d.marks_obtained || 0,
+                maxMarks: d.max_marks || 0,
+                negativeMarks: d.negative_marks || 0,
+                markedForReview: d.marked_for_review || false
+            }));
+
+            // Store and navigate — mark as history view so result page won't re-save
+            sessionStorage.setItem('gateExamResults', JSON.stringify({
+                summary,
+                details: detailsFormatted,
+                fromHistory: true
+            }));
+            window.location.href = 'result.html';
+        }
+
+        async function deleteExamEntry(examId) {
+            if (!confirm('Delete this exam from history?')) return;
+            await deleteExam(examId);
+            await loadHistory();
+        }
+    </script>
+
+    <script src="js/dark_mode.js"></script>
+
+    <!-- Floating Calculator Overlay -->
+    <div id="calculatorOverlay" class="calculator-overlay" style="display: none;">
+        <div class="calculator-header" id="calculatorHeader">
+            <span class="calc-title">Scientific Calculator</span>
+            <button class="calc-close-btn" id="closeCalculatorBtn">&times;</button>
+        </div>
+        <iframe src="Calculator/Calculator.html" class="calculator-iframe" id="calculatorIframe"></iframe>
+    </div>
+
+    <!-- Question Paper Modal -->
+    <div id="questionPaperModal" class="question-paper-modal" style="display: none;">
+        <div class="question-paper-container">
+            <div class="question-paper-header">
+                <h2>Question Paper</h2>
+                <button class="qp-close-btn" id="closeQuestionPaperBtn">&times;</button>
+            </div>
+            <div class="question-paper-content" id="questionPaperContent">
+                <!-- Content injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram Auto-Backup Settings Modal -->
+    <div id="tgModal" class="submit-modal" style="display: none;">
+        <div class="submit-modal-content" style="max-width: 450px; text-align: left;">
+            <h2 style="color: #3b5998; margin-bottom: 15px; text-align: center;">⚙️ Telegram Backup Settings</h2>
+            <p style="font-size: 14px; color: #555; margin-bottom: 20px;">
+                Enter your Bot Token and Chat ID below to enable automatic daily and post-exam backups to your
+                private
+                Telegram channel. Get these from <strong>@BotFather</strong>.
+            </p>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px; color: var(--text-color);">Bot
+                    Token:</label>
+                <input type="text" id="tgBotTokenInput" placeholder="e.g. 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+                    style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-color); color: var(--text-color); font-family: monospace;">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 5px; color: var(--text-color);">Chat
+                    ID:</label>
+                <input type="text" id="tgChatIdInput" placeholder="e.g. -1001234567890"
+                    style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; background: var(--bg-color); color: var(--text-color); font-family: monospace;">
+            </div>
+            <div class="submit-modal-btns" style="justify-content: flex-end; gap: 10px;">
+                <button class="btn-cancel" onclick="closeTgSettings()">Cancel</button>
+                <button class="btn-submit" onclick="saveTgSettings(event)">Save & Test</button>
+            </div>
+        </div>
+    </div>
+    <!-- Scroll to Top Button -->
+    <button id="scrollToTopBtn" class="scroll-to-top" title="Go to top">
+        &#8679;
+    </button>
+</body>
+
+</html>
